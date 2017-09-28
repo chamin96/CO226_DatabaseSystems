@@ -1,0 +1,60 @@
+DROP DATABASE E14158Lab03;
+CREATE DATABASE E14158Lab03;
+use E14158Lab03;
+CREATE TABLE OrderDetails (
+  orderNo INT AUTO_INCREMENT,
+  tshirtSize ENUM('Small','Medium','Large') NOT NULL,
+  tshirtColor ENUM('Red','Blue','Green') NOT NULL,
+  extraCap BOOLEAN DEFAULT FALSE,
+  extraWristBand BOOLEAN DEFAULT FALSE,
+  customerFirstName VARCHAR(100),
+  customerLastName VARCHAR(100) NOT NULL,
+  customerAddress1 VARCHAR(200) NOT NULL,
+  customerAddress2 VARCHAR(200) NOT NULL,
+  customerAddress3 VARCHAR(200) NOT NULL,
+  comments TEXT,
+  PRIMARY KEY(orderNo)
+);
+
+INSERT INTO OrderDetails (
+	tshirtSize,tshirtColor,extraCap,
+	customerFirstName,customerLastName,
+	customerAddress1,customerAddress2,customerAddress3) 
+VALUES (
+	'Small',
+	'Blue',
+	TRUE,
+	'John',
+	'Snow',
+	'No. 2','Winterfell','North'
+);
+
+INSERT INTO OrderDetails (
+	tshirtSize,tshirtColor,
+	customerFirstName,customerLastName,
+	customerAddress1,customerAddress2,customerAddress3,
+	comments)
+VALUES(
+	'Large',
+	'Red',
+    'Anjana',
+	'Welagedara',
+	'No98/A','Mayura','Kehelwala, Kiribathkumbura',
+	'I need this soon in one piece'
+);
+
+INSERT INTO OrderDetails (
+	tshirtSize,tshirtColor,
+	extraCap,extraWristBand,
+	customerFirstName,customerLastName,
+	customerAddress1,customerAddress2,customerAddress3,
+	comments)
+VALUES(
+	'Medium','Green',
+	TRUE,TRUE,
+	'Suren','Sritharan',
+	'No.96','Angunukolapelessa','Kandy',
+	'Deliver soon! I need this to go to a wedding!'
+);
+
+SELECT * FROM OrderDetails;

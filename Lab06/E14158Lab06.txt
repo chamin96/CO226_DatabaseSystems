@@ -1,0 +1,176 @@
+create database E14158Lab06;
+use E14158Lab06;
+
+create table Student(
+	StudentName varchar(100),
+    RegistrationNo INT(3),
+    GPA DECIMAL(3,2),
+    ConvocationRegNo INT(2),
+    Class ENUM('First class honors','Second class honors-upper division','Second class honors-lower division','Third class honors'),
+    primary key(RegistrationNo)
+);
+
+insert into Student (StudentName, RegistrationNo,GPA)
+values
+	('Sameera',435,3.25),
+    ('Kasun',210,3.40),
+    ('Kalpa',201,3.10),
+    ('Chathura',312,3.85),
+    ('Lakmali',473,3.75),
+    ('Sidath',352,3.30),
+    ('Kumudu',111,3.70),
+    ('Nalin',456,3.05),
+    ('Rohani',324,3.70),
+    ('Chithra',231,3.30)
+;
+
+
+######################## 2
+create table Convocation(
+	LastName varchar(100),
+    Address varchar(200),
+    Age int(2),
+    RegistrationNo int(3),
+    ConvocationRegNo int(2),
+	foreign key(RegistrationNo) references Student(RegistrationNo),
+    primary key(ConvocationRegNo)
+);
+
+
+######################## 3
+delimiter //
+create procedure storeDetails (in 
+								in_LastName varchar(100),
+								in_Address varchar(200),
+								in_Age int(2),
+								in_RegistrationNo int(3),
+								in_ConvocationRegNo int(2)
+                            )
+begin
+	insert into Convocation values(in_LastName,in_Address,in_Age,in_RegistrationNo,in_ConvocationRegNo);
+	update Student set ConvocationRegNo=in_ConvocationRegNo where RegistrationNo=in_RegistrationNo;
+end;//
+delimiter ;
+
+######################## 4
+call storeDetails('Dissawa','Peradeniya rd, Kandy',25,435,1);
+call storeDetails('Senarathne','Health ministry residence, Colombo',30,312,2);
+call storeDetails('Weththamuni','Galle road, Colombo',24,352,3);
+call storeDetails('Ekanayeka','Medamahanuwara rd, Udadumbara',24,456,4);
+
+select * from Convocation;
+
++-------------+------------------------------------+------+----------------+------------------+
+| LastName    | Address                            | Age  | RegistrationNo | ConvocationRegNo |
++-------------+------------------------------------+------+----------------+------------------+
+| Dissawa     | Peradeniya rd, Kandy               |   25 |            435 |                1 |
+| Senarathne  | Health ministry residence, Colombo |   30 |            312 |                2 |
+| Weththamuni | Galle road, Colombo                |   24 |            352 |                3 |
+| Ekanayeka   | Medamahanuwara rd, Udadumbara      |   24 |            456 |                4 |
++-------------+------------------------------------+------+----------------+------------------+
+
+######################## 5
+create view Registered as
+	select s.StudentName, c.LastName, s.RegistrationNo, s.GPA, c.ConvocationRegNo,c.Address,c.Age
+    from Student s, Convocation c
+	where s.RegistrationNo in (select RegistrationNo from Convocation) and s.RegistrationNo=c.RegistrationNo;
+    
+select * from Registered;
+
+
++-------------+-------------+----------------+------+------------------+------------------------------------+------+
+| StudentName | LastName    | RegistrationNo | GPA  | ConvocationRegNo | Address                            | Age  |
++-------------+-------------+----------------+------+------------------+------------------------------------+------+
+| Sameera     | Dissawa     |            435 | 3.25 |                1 | Peradeniya rd, Kandy               |   25 |
+| Chathura    | Senarathne  |            312 | 3.85 |                2 | Health ministry residence, Colombo |   30 |
+| Sidath      | Weththamuni |            352 | 3.30 |                3 | Galle road, Colombo                |   24 |
+| Nalin       | Ekanayeka   |            456 | 3.05 |                4 | Medamahanuwara rd, Udadumbara      |   24 |
++-------------+-------------+----------------+------+------------------+------------------------------------+------+
+
+
+######################## 6
+create view NotRegistered as
+	select s.StudentName, s.RegistrationNo, s.GPA
+    from Student s
+	where s.RegistrationNo not in (select RegistrationNo from Convocation);
+
+select * from NotRegistered;  
+
++-------------+----------------+------+
+| StudentName | RegistrationNo | GPA  |
++-------------+----------------+------+
+| Kumudu      |            111 | 3.70 |
+| Kalpa       |            201 | 3.10 |
+| Kasun       |            210 | 3.40 |
+| Chithra     |            231 | 3.30 |
+| Rohani      |            324 | 3.70 |
+| Lakmali     |            473 | 3.75 |
++-------------+----------------+------+
+
+######################## 7
+create table LateRegistration(
+	LastName varchar(100),
+    Address varchar(200),
+    Age int(2),
+    RegistrationNo int(3),
+    ConvocationRegNo int(2),
+	foreign key(RegistrationNo) references Student(RegistrationNo),
+    primary key(ConvocationRegNo)
+);
+
+######################## 8
+delimiter //
+create trigger lateRegistrationTrigger
+after insert on LateRegistration
+for each row update Student s set s.ConvocationRegNo=new.ConvocationRegNo where s.RegistrationNo=new.RegistrationNo;
+//
+delimiter ;
+
+
+######################## 9
+insert into LateRegistration values
+	('Kalhara','Ampara road, Ampara',24,210,6),
+    ('Perera','Gampola road, Peradeniya',23,201,7),
+    ('Rathnayeka','Digana, Rajawella',25,111,8),
+    ('Samarasinghe','Polgolla road, Wattegama',24,324,9),
+    ('Unmada','Solitary tower, Polonnaruwa',22,231,10)
+;
+
+select * from LateRegistration;
++--------------+-----------------------------+------+----------------+------------------+
+| LastName     | Address                     | Age  | RegistrationNo | ConvocationRegNo |
++--------------+-----------------------------+------+----------------+------------------+
+| Kalhara      | Ampara road, Ampara         |   24 |            210 |                6 |
+| Perera       | Gampola road, Peradeniya    |   23 |            201 |                7 |
+| Rathnayeka   | Digana, Rajawella           |   25 |            111 |                8 |
+| Samarasinghe | Polgolla road, Wattegama    |   24 |            324 |                9 |
+| Unmada       | Solitary tower, Polonnaruwa |   22 |            231 |               10 |
++--------------+-----------------------------+------+----------------+------------------+
+
+######################## 10
+delimiter //
+create procedure fillClass ()
+  begin
+	update Student set Class = 'First class honors' where GPA >= 3.70;
+    update Student set Class = 'Second class honors-upper division' where GPA < 3.70 and GPA >= 3.30;
+    update Student set Class = 'Second class honors-lower division' where GPA < 3.30 and GPA >= 2.70;
+    update Student set Class = 'Third class honors' where GPA < 2.70 and GPA >= 2.0;
+  end;//
+delimiter ;
+call fillClass();
+
+select * from Student;
++-------------+----------------+------+------------------+------------------------------------+
+| StudentName | RegistrationNo | GPA  | ConvocationRegNo | Class                              |
++-------------+----------------+------+------------------+------------------------------------+
+| Kumudu      |            111 | 3.70 |                8 | First class honors                 |
+| Kalpa       |            201 | 3.10 |                7 | Second class honors-lower division |
+| Kasun       |            210 | 3.40 |                6 | Second class honors-upper division |
+| Chithra     |            231 | 3.30 |               10 | Second class honors-upper division |
+| Chathura    |            312 | 3.85 |                2 | First class honors                 |
+| Rohani      |            324 | 3.70 |                9 | First class honors                 |
+| Sidath      |            352 | 3.30 |                3 | Second class honors-upper division |
+| Sameera     |            435 | 3.25 |                1 | Second class honors-lower division |
+| Nalin       |            456 | 3.05 |                4 | Second class honors-lower division |
+| Lakmali     |            473 | 3.75 |             NULL | First class honors                 |
++-------------+----------------+------+------------------+------------------------------------+
